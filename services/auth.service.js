@@ -10,17 +10,26 @@ export const signup = async (username, email, password) => {
   const user = new User({ username, email, password: hashed });
   await user.save();
 
-  // Generate JWT token
+  
   const token = jwt.sign(
-    { userId: user._id, username: user.username }, 
+    { 
+      userId: user._id, 
+      username: user.username,
+      role: user.role || 'user'  
+    }, 
     process.env.JWT_SECRET, 
     { expiresIn: "1h" }
   );
 
-  // Return both token and user data
+
   return { 
     token, 
-    user: { id: user._id, username: user.username, email: user.email } 
+    user: { 
+      id: user._id, 
+      username: user.username, 
+      email: user.email,
+      role: user.role || 'user'  
+    } 
   };
 };
 
@@ -31,15 +40,25 @@ export const login = async (username, password) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error("Invalid credentials");
 
+
   const token = jwt.sign(
-    { userId: user._id, username: user.username }, 
+    { 
+      userId: user._id, 
+      username: user.username,
+      role: user.role || 'user'  
+    }, 
     process.env.JWT_SECRET, 
     { expiresIn: "1h" }
   );
 
   return { 
     token, 
-    user: { id: user._id, username: user.username, email: user.email } 
+    user: { 
+      id: user._id, 
+      username: user.username, 
+      email: user.email,
+      role: user.role || 'user'  
+    } 
   };
 };
 
@@ -62,7 +81,7 @@ export const updateUserRole = async ({ userId, newRole }) => {
   if (!user) throw new Error('User not found');
 
   user.role = newRole;
-
+  await user.save();  
 
   return { id: user._id, role: user.role };
 };
